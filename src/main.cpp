@@ -8,9 +8,10 @@
 JointMotor2 jointMotor[3];
 STATE state = ST_HOLDING;
 
-//Serial Buffer
-const int len = 16;
-char serialBuffer[len];
+// //Serial Buffer
+// const int len = 16;
+// char serialBuffer[len];
+String inputBuffer; //String isn't the most efficient, but easier for I/O
 
 void UpdateMotors(void);
 void SetNewVias(void);
@@ -34,10 +35,11 @@ void setup()
 	jointMotor[1].SetTarget(124.38);
 	jointMotor[2].SetTarget(27.81);
 
+	inputBuffer.reserve(24);
+
 	Serial.println("Done");
 }
 
-String inputBuffer(24);
 uint32_t lastViaUpdate = 0;
 uint32_t startMoveTime = 0;
 
