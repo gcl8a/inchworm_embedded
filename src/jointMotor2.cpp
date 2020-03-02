@@ -1,17 +1,18 @@
 #include "JointMotor2.h"
 #include "config.h"
 
-JointMotor2::JointMotor2(int pinDirectionA1, int pinDirectionB1, int pinPWM1, 
+JointMotor2::JointMotor2(int pwmF, int pwmR, int pinE, 
 	uint8_t encoderAddress, double kp, double ki, double kd, 
 	double ang_offset, bool encoder_clockwise, uint8_t id_input)
 {
 	//Pin Configuration
-	pinDirectionA = pinDirectionA1;
-	pinDirectionB = pinDirectionB1;
-	pinPWM = pinPWM1;
-	pinMode(pinDirectionA, OUTPUT);
-	pinMode(pinDirectionB, OUTPUT);
-	pinMode(pinPWM, OUTPUT);
+	pwmForward = pwmF;
+	pwmReverse = pwmR;
+	pinEnable = pinE;
+	pinMode(pwmForward, OUTPUT);
+	pinMode(pwmReverse, OUTPUT);
+	pinMode(pinEnable, OUTPUT);
+	digitalWrite(pinEnable, HIGH);
 	//Encoder Setup
 	encoder = AMS_AS5048B(encoderAddress);
 	encoder.begin();	  //Encoder Constructor
@@ -35,17 +36,16 @@ void JointMotor2::SendPWM(int speed)
 	if (speed < 0)
 	{
 		if (speed < -maxDutyCycle) {speed = -maxDutyCycle;}
-		digitalWrite(pinDirectionA, HIGH);
-		digitalWrite(pinDirectionB, LOW);
+		analogWrite(pwmReverse, 0);
+		analogWrite(pwmForward, -speed);
 	}
 	else
 	{
 		if (speed > maxDutyCycle) {speed = maxDutyCycle;}
-		digitalWrite(pinDirectionA, LOW);
-		digitalWrite(pinDirectionB, HIGH);
+		analogWrite(pwmForward, 0);
+		analogWrite(pwmReverse, speed);
 	}
 
-	analogWrite(pinPWM, abs(speed));
 	return;
 }
 

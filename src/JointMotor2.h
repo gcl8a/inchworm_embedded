@@ -10,7 +10,7 @@ class JointMotor2
 private:
 	uint8_t id;
 	
-	uint8_t pinDirectionA, pinDirectionB, pinPWM;
+	uint8_t pwmForward, pwmReverse, pinEnable;
 	AMS_AS5048B encoder;
 
 	//PID

@@ -15,7 +15,7 @@ String inputBuffer; //String isn't the most efficient, but easier for I/O
 
 void UpdateMotors(void);
 void SetNewVias(void);
-void StartMove(void);
+void StartMove(bool);
 
 void setup()
 {
@@ -24,12 +24,12 @@ void setup()
 
 	Serial.println("Robot intializing....");
 
-	jointMotor[0] = JointMotor2(JOINT_MOTOR1_1, JOINT_MOTOR1_2, JOINT_MOTOR1_PWM, 
-		JOINT_MOTOR1_ADR, 10, 0, 0, 27.81, true, 0);
-	jointMotor[1] = JointMotor2(JOINT_MOTOR2_1, JOINT_MOTOR2_2, JOINT_MOTOR2_PWM, 
-		JOINT_MOTOR2_ADR, 10, 0, 0, 124.38, true, 1);
-	jointMotor[2] = JointMotor2(JOINT_MOTOR3_1, JOINT_MOTOR3_2, JOINT_MOTOR3_PWM, 
-		JOINT_MOTOR3_ADR, 10, 0, 0, 27.81, false, 2); 
+	jointMotor[0] = JointMotor2(JOINT_MOTOR1_FWD, JOINT_MOTOR1_REV, JOINT_MOTOR1_EN, 
+		JOINT_MOTOR1_ADR, 40, 0.3, 20, 27.81, true, 0);
+	jointMotor[1] = JointMotor2(JOINT_MOTOR2_FWD, JOINT_MOTOR2_REV, JOINT_MOTOR2_EN, 
+		JOINT_MOTOR2_ADR, 40, 0.3, 20, 124.38, true, 1);
+	jointMotor[2] = JointMotor2(JOINT_MOTOR3_FWD, JOINT_MOTOR3_REV, JOINT_MOTOR3_EN, 
+		JOINT_MOTOR3_ADR, 40, 0.3, 20, 27.81, false, 2); 
 
 	jointMotor[0].SetTarget(27.81);
 	jointMotor[1].SetTarget(124.38);
@@ -50,13 +50,20 @@ void loop()
 		Serial.println("Message received");
 
 		char c = Serial.read();
-		inputBuffer += Serial.read();
+		inputBuffer += c;
 
 		if(c == '\n')
 		{
 			if(inputBuffer[0] == 'M') 
 			{
-				StartMove();
+				StartMove(0);
+				state = ST_MOVING;
+			}
+
+			if(inputBuffer[0] == 'N') 
+			{
+				StartMove(1);
+				state = ST_MOVING;
 			}
 
 			if(inputBuffer[0] == 'P')
@@ -94,7 +101,7 @@ void loop()
 	uint32_t currTime = millis();
 	if(currTime - lastUpdateTime >= UPDATE_INTERVAL)
 	{
-		if(currTime - lastUpdateTime >= UPDATE_INTERVAL)
+		if(currTime - lastUpdateTime > UPDATE_INTERVAL)
 			Serial.println("Missed update schedule.");
 
 		lastUpdateTime += UPDATE_INTERVAL;
@@ -103,6 +110,8 @@ void loop()
 		{
 			UpdateMotors();
 		}
+
+		//Serial.println(currTime);
 	}
 
 	if(currTime - lastViaUpdate >= VIA_INTERVAL)
@@ -142,12 +151,13 @@ void UpdateMotors()
 float startAngles[MOTOR_COUNT];
 float targetAngles[MOTOR_COUNT];
 
-void StartMove(void)
+void StartMove(bool dir)
 {
 	for(int i = 0; i < MOTOR_COUNT; i++)
 	{
 		startAngles[i] = jointMotor[i].getAngleDegrees();
-		targetAngles[i] = startAngles[i] + 10;
+		if(dir) targetAngles[i] = startAngles[i] - 5;
+		else targetAngles[i] = startAngles[i] + 5;
 	}
 
 	startMoveTime = millis();
